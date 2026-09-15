@@ -1,0 +1,6 @@
+import { generateFiles, type GeneratedFile } from "./codegen";
+import { debugFiles } from "./debugger";
+import { runSandbox } from "../sandbox/executor";
+const MAX_RETRIES=3;
+function mergeFiles(original:GeneratedFile[],replacements:GeneratedFile[]){const map=new Map(original.map(f=>[f.path,f]));for(const f of replacements)map.set(f.path,f);return [...map.values()];}
+export async function autonomousBuild(request:string,plan:unknown){let files=await generateFiles(request,plan);const attempts:any[]=[];for(let attempt=1;attempt<=MAX_RETRIES+1;attempt++){const result=await runSandbox(files);attempts.push({attempt,status:result.status,changedFiles:[],stderr:result.stderr,stdout:result.stdout,reason:result.reason});if(result.status!=="FAILED")return{files,result,attempts,retries:attempt-1};if(attempt>MAX_RETRIES)break;const replacements=await debugFiles(files,result.stderr,result.stdout);if(!replacements.length)break;files=mergeFiles(files,replacements);attempts[attempts.length-1].changedFiles=replacements.map(f=>f.path);}const last=attempts[attempts.length-1];return{files,result:{available:true,status:"FAILED" as const,stdout:last.stdout,stderr:last.stderr,reason:"Build failed after bounded Debug Agent retries."},attempts,retries:Math.max(0,attempts.length-1)};}
