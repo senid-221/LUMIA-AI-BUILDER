@@ -1,0 +1,1 @@
+OAuth routes are configured under /api/auth/oauth. Set provider credentials in the deployment environment before enabling production login.
