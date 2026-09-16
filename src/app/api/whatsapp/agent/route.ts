@@ -65,7 +65,14 @@ export async function POST(request: Request) {
   const config = projectId
     ? await prisma.whatsAppAgentConfig.upsert({
         where: { userId_projectId: { userId: user.id, projectId } },
-        create: { userId: user.id, projectId, instructions, welcome, enabled },
+        create: {
+          id: crypto.randomUUID(),
+          userId: user.id,
+          projectId,
+          instructions,
+          welcome,
+          enabled,
+        },
         update: { instructions, welcome, enabled },
       })
     : await prisma.whatsAppAgentConfig.findFirst({
@@ -80,7 +87,14 @@ export async function POST(request: Request) {
           data: { instructions, welcome, enabled },
         })
     : await prisma.whatsAppAgentConfig.create({
-        data: { userId: user.id, projectId: null, instructions, welcome, enabled },
+        data: {
+          id: crypto.randomUUID(),
+          userId: user.id,
+          projectId: null,
+          instructions,
+          welcome,
+          enabled,
+        },
       });
 
   return NextResponse.json({
