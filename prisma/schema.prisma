@@ -44,7 +44,7 @@ enum ExecutionStatus {
 model User {
   id             String                 @id @default(cuid())
   email          String                 @unique
-  passwordHash   String
+  passwordHash   String?
   name           String?
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
@@ -100,7 +100,7 @@ model BuilderFile {
 model BuilderTask {
   id        String         @id @default(cuid())
   projectId String
-  type      TaskType
+  type      TaskType       
   title     String
   status    TaskStatus     @default(PENDING)
   input     Json?
@@ -124,7 +124,7 @@ model BuilderExecution {
 }
 
 model WhatsAppAgentConfig {
-  id           String          @id @default(cuid())
+  id           String          @id
   userId       String
   projectId    String?
   instructions String
