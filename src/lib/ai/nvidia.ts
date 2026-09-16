@@ -6,8 +6,8 @@ type NvidiaResponse = {
 };
 
 const DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1";
-// Current NVIDIA free endpoint model suitable for coding/agentic workflows.
-const DEFAULT_MODEL = "glm-5-3";
+// NVIDIA currently lists this model as a Free Endpoint.
+const DEFAULT_MODEL = "deepseek-v4-flash-0731";
 
 function getConfig() {
   const apiKey = process.env.NVIDIA_API_KEY?.trim();
