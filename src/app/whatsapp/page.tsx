@@ -1,35 +1,49 @@
 "use client";
 import { useEffect, useState } from "react";
 
+type Config = { instructions: string; welcome: string; enabled: boolean; projectId?: string | null };
+
 export default function WhatsAppAgentPage() {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [configured, setConfigured] = useState(false);
   const [instructions, setInstructions] = useState("You are Lumia's helpful WhatsApp AI assistant. Answer clearly and concisely.");
   const [welcome, setWelcome] = useState("Hello! How can I help you today?");
+  const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Loading configuration…");
 
-  useEffect(() => {
-    fetch("/api/whatsapp/config").then(r => r.json()).then(d => {
-      if (d.webhookUrl) setWebhookUrl(d.webhookUrl);
-      setConfigured(Boolean(d.configured));
-      setStatus(d.configured ? "WhatsApp credentials are configured on the server." : "Add WhatsApp credentials to the server environment first.");
-    }).catch(() => setStatus("Unable to load WhatsApp configuration."));
-  }, []);
+  async function load() {
+    try {
+      const [connection, agent] = await Promise.all([fetch("/api/whatsapp/config"), fetch("/api/whatsapp/agent")]);
+      const c = await connection.json();
+      const a = await agent.json();
+      if (c.webhookUrl) setWebhookUrl(c.webhookUrl);
+      setConfigured(Boolean(c.configured));
+      if (a.config) {
+        setInstructions(a.config.instructions || "");
+        setWelcome(a.config.welcome || "");
+        setEnabled(a.config.enabled !== false);
+      }
+      setStatus(c.configured ? "WhatsApp credentials are configured on the server." : "Add WhatsApp credentials to the server environment first.");
+    } catch { setStatus("Unable to load WhatsApp configuration."); }
+  }
+
+  useEffect(() => { load(); }, []);
 
   async function save() {
-    setSaving(true);
-    setStatus("Saving agent settings…");
-    const r = await fetch("/api/whatsapp/agent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ instructions, welcome }) });
-    const d = await r.json().catch(() => ({}));
-    setStatus(r.ok ? "Agent settings saved." : (d.error || "Settings could not be saved."));
-    setSaving(false);
+    setSaving(true); setStatus("Saving agent settings…");
+    try {
+      const r = await fetch("/api/whatsapp/agent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ instructions, welcome, enabled }) });
+      const d = await r.json().catch(() => ({}));
+      setStatus(r.ok ? "Agent settings saved to the database." : (d.error || "Settings could not be saved."));
+    } catch { setStatus("Unable to save agent settings."); }
+    finally { setSaving(false); }
   }
 
   return <main style={{ maxWidth: 900, margin: "0 auto", padding: 28, fontFamily: "Arial", background: "#f6f7f9", minHeight: "100vh" }}>
     <a href="/builder">← Back to Builder</a>
     <h1>WhatsApp AI Agent</h1>
-    <p>Configure the behavior of your Lumia WhatsApp agent. Secrets stay server-side.</p>
+    <p>Configure Lumia's WhatsApp agent. Behavior settings are persisted per authenticated account; credentials remain server-side.</p>
     <section style={{ background: "white", padding: 20, borderRadius: 10, border: "1px solid #ddd", marginTop: 18 }}>
       <h3>Connection</h3>
       <p><strong>Status:</strong> {configured ? "Configured" : "Not configured"}</p>
@@ -43,6 +57,7 @@ export default function WhatsAppAgentPage() {
       <textarea value={instructions} onChange={e => setInstructions(e.target.value)} style={{ width: "100%", minHeight: 150, padding: 11, marginTop: 6, boxSizing: "border-box" }} />
       <label style={{ display: "block", marginTop: 14 }}>Welcome message</label>
       <textarea value={welcome} onChange={e => setWelcome(e.target.value)} style={{ width: "100%", minHeight: 80, padding: 11, marginTop: 6, boxSizing: "border-box" }} />
+      <label style={{ display: "block", marginTop: 14 }}><input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} /> Enable agent</label>
       <button onClick={save} disabled={saving} style={{ marginTop: 14, padding: "11px 18px" }}>{saving ? "Saving…" : "Save Agent"}</button>
       <p>{status}</p>
     </section>
