@@ -1,4 +1,4 @@
-import { nvidiaChat } from "../ai/nvidia";
+import { aiChat } from "../ai/provider";
 import type { BuildPlan } from "./types";
 
 const fallbackPlan = (request: string): BuildPlan => ({
@@ -33,9 +33,7 @@ function cleanJson(text: string) {
 }
 
 function parsePlan(text: string): BuildPlan {
-  const raw = cleanJson(extractJson(text));
-  const parsed = JSON.parse(raw) as Partial<BuildPlan>;
-
+  const parsed = JSON.parse(cleanJson(extractJson(text))) as Partial<BuildPlan>;
   if (
     typeof parsed.summary !== "string" ||
     !Array.isArray(parsed.requirements) ||
@@ -44,25 +42,17 @@ function parsePlan(text: string): BuildPlan {
     !Array.isArray(parsed.database) ||
     !Array.isArray(parsed.apis) ||
     !Array.isArray(parsed.tasks)
-  ) {
-    throw new Error("Invalid build plan returned by AI.");
-  }
-
+  ) throw new Error("Invalid build plan returned by AI.");
   return parsed as BuildPlan;
 }
 
 export async function createBuildPlan(request: string): Promise<BuildPlan> {
   const system = `You are Lumia AI's software architecture planner. Return ONLY one valid JSON object, with no markdown and no commentary. Required keys: summary:string, requirements:string[], pages:string[], stack:string[], database:string[], apis:string[], tasks:array. Each task must contain type, title, description. Allowed task type values: WEB_APP, BACKEND, DATABASE, PROMPT, CODE, TEST, DEBUG. Use double quotes everywhere, no trailing commas, and ensure the JSON is syntactically valid. Do not claim code was built or tested.`;
-
   try {
-    const result = await nvidiaChat(
-      [
-        { role: "system", content: system },
-        { role: "user", content: request },
-      ],
+    const result = await aiChat(
+      [{ role: "system", content: system }, { role: "user", content: request }],
       { temperature: 0.1, maxTokens: 2400 },
     );
-
     return parsePlan(result.content);
   } catch (error) {
     console.error("Planner error:", error);
