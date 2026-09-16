@@ -1,0 +1,3 @@
+"use client";
+import {useEffect,useState} from "react";
+export default function Preview(){const [src,setSrc]=useState("");useEffect(()=>{const p=new URLSearchParams(location.search).get("url");if(p)setSrc(p)},[]);return <main style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"Arial"}}><header style={{padding:"12px 16px",borderBottom:"1px solid #ddd",display:"flex",gap:12,alignItems:"center"}}><strong>LUMIA AI — Live Preview</strong>{src&&<a href={src} target="_blank">Open preview</a>}</header>{src?<iframe title="Lumia preview" src={src} style={{border:0,flex:1,width:"100%"}} sandbox="allow-scripts allow-forms allow-modals"/>:<div style={{padding:24}}>No preview URL supplied. Start the generated app and pass <code>?url=...</code>.</div>}</main>}
