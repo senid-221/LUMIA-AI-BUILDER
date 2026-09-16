@@ -6,7 +6,8 @@ type NvidiaResponse = {
 };
 
 const DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1";
-const DEFAULT_MODEL = "qwen/qwen3-next-80b-a3b-instruct";
+// Current NVIDIA free hosted endpoint suitable for coding/agent workflows.
+const DEFAULT_MODEL = "deepseek-ai/deepseek-v4-flash-0731";
 
 function getConfig() {
   const apiKey = process.env.NVIDIA_API_KEY?.trim();
@@ -31,7 +32,7 @@ function friendlyNvidiaError(status: number, data: NvidiaResponse) {
   }
 
   if (status === 410) {
-    return `NVIDIA free endpoint is no longer available for the selected model${code}${message ? `: ${message}` : ". Change NVIDIA_MODEL to a currently available model in Vercel."}`;
+    return `NVIDIA free endpoint is no longer available for the selected model${code}${message ? `: ${message}` : ". Change NVIDIA_MODEL to a currently available free model in Vercel."}`;
   }
 
   if (status === 422) {
