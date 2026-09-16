@@ -1,0 +1,5 @@
+import {NextResponse} from "next/server";
+import {prisma} from "@/lib/prisma";
+import {getCurrentUser} from "@/lib/auth";
+export async function GET(){const user=await getCurrentUser(); if(!user)return NextResponse.json({ok:false,error:"Unauthorized"},{status:401}); const projects=await prisma.builderProject.findMany({where:{ownerId:user.id},orderBy:{updatedAt:"desc"},include:{_count:{select:{files:true}}}}); return NextResponse.json({ok:true,projects})}
+export async function POST(req:Request){const user=await getCurrentUser(); if(!user)return NextResponse.json({ok:false,error:"Unauthorized"},{status:401}); try{const body=await req.json(); const name=String(body.name||"").trim(); if(!name)return NextResponse.json({ok:false,error:"Project name is required"},{status:400}); const project=await prisma.builderProject.create({data:{ownerId:user.id,name,description:String(body.description||"").trim()||null,stack:body.stack??null}}); return NextResponse.json({ok:true,project},{status:201})}catch(e){console.error(e);return NextResponse.json({ok:false,error:"Project creation failed"},{status:500})}}
