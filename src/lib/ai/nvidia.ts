@@ -12,9 +12,7 @@ function getConfig() {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured on the server.");
 
-  const baseUrl = (process.env.OPENROUTER_BASE_URL || DEFAULT_BASE_URL)
-    .trim()
-    .replace(/\/$/, "");
+  const baseUrl = (process.env.OPENROUTER_BASE_URL || DEFAULT_BASE_URL).trim().replace(/\/$/, "");
   const model = (process.env.OPENROUTER_MODEL || DEFAULT_MODEL).trim();
 
   return { apiKey, baseUrl, model };
@@ -45,7 +43,7 @@ function friendlyOpenRouterError(status: number, data: OpenRouterResponse) {
     : `OpenRouter API request failed with HTTP ${status}${code}.`;
 }
 
-export async function nvidiaChat(
+export async function openRouterChat(
   messages: ChatMessage[],
   options?: { temperature?: number; maxTokens?: number }
 ) {
@@ -82,6 +80,9 @@ export async function nvidiaChat(
 
   return { content, model };
 }
+
+// Backward-compatible export name used by the existing builder agents.
+export const nvidiaChat = openRouterChat;
 
 export function nvidiaConfigured() {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
