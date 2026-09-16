@@ -17,8 +17,9 @@ export async function runAgentTeam(input: { request: string; plan: unknown; proj
   const sharedMemory = memoryContext(memories);
   const planText = JSON.stringify(input.plan);
   const steps: AgentStep[] = [];
+  const roles: AgentRole[] = ["ui", "backend", "database", "tester", "security"];
 
-  for (const role of Object.keys(ROLE_PROMPTS) as AgentRole[]) {
+  for (const role of roles) {
     try {
       const response = await aiChat(
         [
@@ -29,13 +30,29 @@ export async function runAgentTeam(input: { request: string; plan: unknown; proj
       );
       const output = response.content.slice(0, 7000);
       steps.push({ role, status: "DONE", output });
-      if (input.projectId) await remember({ projectId: input.projectId, agentType: role, role: "assistant", content: output, metadata: { kind: "team_agent", agentRole: role } });
+      if (input.projectId) {
+        await remember({
+          projectId: input.projectId,
+          agentType: role,
+          role: "assistant",
+          content: output,
+          metadata: { kind: "team_agent", agentRole: role, model: response.model },
+        });
+      }
     } catch (error) {
       steps.push({ role, status: "FAILED", output: error instanceof Error ? error.message : "Agent failed." });
     }
   }
 
   const context = steps.filter(s => s.status === "DONE").map(s => `[${s.role.toUpperCase()} AGENT]\n${s.output}`).join("\n\n");
-  if (input.projectId && context) await remember({ projectId: input.projectId, agentType: "orchestrator", role: "assistant", content: context.slice(0, 20000), metadata: { kind: "team_context", steps: steps.length } });
+  if (input.projectId && context) {
+    await remember({
+      projectId: input.projectId,
+      agentType: "orchestrator",
+      role: "assistant",
+      content: context.slice(0, 20000),
+      metadata: { kind: "team_context", steps: steps.length },
+    });
+  }
   return { ok: true as const, steps, context, memoryCount: memories.length };
 }
