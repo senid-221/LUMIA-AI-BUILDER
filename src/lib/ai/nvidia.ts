@@ -6,7 +6,7 @@ type NvidiaResponse = {
 };
 
 const DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1";
-const DEFAULT_MODEL = "qwen/qwen2.5-coder-32b-instruct";
+const DEFAULT_MODEL = "qwen/qwen3-next-80b-a3b-instruct";
 
 function getConfig() {
   const apiKey = process.env.NVIDIA_API_KEY?.trim();
@@ -28,6 +28,10 @@ function friendlyNvidiaError(status: number, data: NvidiaResponse) {
 
   if (status === 404) {
     return `NVIDIA model or endpoint was not found${code}. Check NVIDIA_BASE_URL and NVIDIA_MODEL.`;
+  }
+
+  if (status === 410) {
+    return `NVIDIA free endpoint is no longer available for the selected model${code}${message ? `: ${message}` : ". Change NVIDIA_MODEL to a currently available model in Vercel."}`;
   }
 
   if (status === 422) {
