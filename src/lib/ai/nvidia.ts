@@ -6,7 +6,8 @@ type NvidiaResponse = {
 };
 
 const DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1";
-// Current NVIDIA free hosted endpoint suitable for coding/agent workflows.
+// NVIDIA currently lists this model as a Free Endpoint and it is suited to coding,
+// chat, and agentic workflows.
 const DEFAULT_MODEL = "deepseek-ai/deepseek-v4-flash-0731";
 
 function getConfig() {
