@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const planned = await planBuild(prompt, projectId);
     const team = await runAgentTeam({ request: prompt, plan: planned.plan, projectId });
 
-    return NextResponse.json({ ok: true, projectId, plan: planned.plan, ...team });
+    return NextResponse.json({ projectId, plan: planned.plan, ...team });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Agent team failed." }, { status: 500 });
