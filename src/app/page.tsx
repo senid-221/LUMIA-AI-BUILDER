@@ -1,2 +1,5 @@
-import Builder from "./builder";
-export default function Home(){return <Builder/>}
+import OAuthGate from "./oauth-gate";
+
+export default function Home() {
+  return <OAuthGate />;
+}
